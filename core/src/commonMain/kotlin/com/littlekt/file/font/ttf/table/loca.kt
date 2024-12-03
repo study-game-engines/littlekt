@@ -2,28 +2,17 @@ package com.littlekt.file.font.ttf.table
 
 import com.littlekt.file.ByteBuffer
 import com.littlekt.file.font.ttf.Parser
+import kotlin.reflect.KFunction0
 
-/**
- * The `loca` table stores the offsets to the locations of the glyphs in the font.
- * https://www.microsoft.com/typography/OTSPEC/loca.htm
- *
- * @author Colton Daily
- * @date 12/1/2021
- */
-internal class LocaParser(
-    val byteBuffer: ByteBuffer,
-    val start: Int,
-    val numGlyphs: Int,
-    val shortVersion: Boolean
-) {
+// offsets to the locations of the glyphs in the font https://www.microsoft.com/typography/OTSPEC/loca.htm
+internal class LocaParser(val byteBuffer: ByteBuffer, val start: Int, val numGlyphs: Int, val shortVersion: Boolean) {
 
     fun parse(): IntArray {
-        val p = Parser(byteBuffer, start)
-        val parseFn = if (shortVersion) p::getParseUint16 else p::getParseInt32
-
-        val glyphOffsets = IntArray(numGlyphs + 1)
+        val parser: Parser = Parser(byteBuffer, start)
+        val parseFunction: KFunction0<Int> = if (shortVersion) parser::getParseUint16 else parser::getParseInt32
+        val glyphOffsets: IntArray = IntArray(numGlyphs + 1)
         for (i in 0 until numGlyphs) {
-            var glyphOffset = parseFn.get()
+            var glyphOffset: Int = parseFunction()
             if (shortVersion) {
                 glyphOffset *= 2
             }
@@ -31,4 +20,5 @@ internal class LocaParser(
         }
         return glyphOffsets
     }
+
 }

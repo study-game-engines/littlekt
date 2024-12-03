@@ -4,50 +4,34 @@ import com.littlekt.file.ByteBuffer
 import com.littlekt.file.font.ttf.Parser
 import kotlin.math.roundToInt
 
-/**
- * The `head` table contains global information about the font.
- * https://www.microsoft.com/typography/OTSPEC/head.htm
- *
- * @author Colton Daily
- * @date 11/30/2021
- */
+// global information about the font https://www.microsoft.com/typography/OTSPEC/head.htm
 internal class HeadParser(val buffer: ByteBuffer, val start: Int) {
 
     fun parse(): Head {
-        val p = Parser(buffer, start)
+        val parser: Parser = Parser(buffer, start)
         return Head(
-            version = p.parseVersion(),
-            fontRevision = (p.getParseFixed() * 1000).roundToInt() / 1000,
-            checkSumAdjustment = p.getParseUint32().toInt(),
-            magicNumber =
-                p.getParseUint32().toInt().also {
-                    check(it == 0x5F0F3CF5) { "Font header has wrong magic number." }
-                },
-            flags = p.getParseUint16(),
-            unitsPerEm = p.getParseUint16(),
-            created = p.getParseLongDateTime(),
-            modified = p.getParseLongDateTime(),
-            xMin = p.getParseInt16().toInt(),
-            yMin = p.getParseInt16().toInt(),
-            xMax = p.getParseInt16().toInt(),
-            yMax = p.getParseInt16().toInt(),
-            macStyle = p.getParseUint16(),
-            lowestRecPPEM = p.getParseUint16(),
-            fontDirectionHint = p.getParseInt16().toInt(),
-            indexToLocFormat = p.getParseInt16().toInt(),
-            glyphDateFormat = p.getParseInt16().toInt()
+            version = parser.parseVersion(),
+            fontRevision = (parser.getParseFixed() * 1000).roundToInt() / 1000,
+            checkSumAdjustment = parser.getParseUint32().toInt(),
+            magicNumber = parser.getParseUint32().toInt().also { check(it == 0x5F0F3CF5) { "Font header has wrong magic number." } },
+            flags = parser.getParseUint16(),
+            unitsPerEm = parser.getParseUint16(),
+            created = parser.getParseLongDateTime(),
+            modified = parser.getParseLongDateTime(),
+            xMin = parser.getParseInt16().toInt(),
+            yMin = parser.getParseInt16().toInt(),
+            xMax = parser.getParseInt16().toInt(),
+            yMax = parser.getParseInt16().toInt(),
+            macStyle = parser.getParseUint16(),
+            lowestRecPPEM = parser.getParseUint16(),
+            fontDirectionHint = parser.getParseInt16().toInt(),
+            indexToLocFormat = parser.getParseInt16().toInt(),
+            glyphDateFormat = parser.getParseInt16().toInt()
         )
     }
 }
 
-/**
- * The `head` table contains global information about the font.
- * https://www.microsoft.com/typography/OTSPEC/head.htm
- *
- * @author Colton Daily
- * @date 11/30/2021
- */
-internal class Head(
+class Head(
     val version: Float,
     val fontRevision: Int,
     val checkSumAdjustment: Int,

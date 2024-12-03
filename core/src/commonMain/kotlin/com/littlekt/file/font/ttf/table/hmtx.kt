@@ -4,31 +4,18 @@ import com.littlekt.file.ByteBuffer
 import com.littlekt.file.font.ttf.GlyphSet
 import com.littlekt.file.font.ttf.Parser
 
-/**
- * The `hmtx` table contains the horizontal metrics for all glyphs.
- * https://www.microsoft.com/typography/OTSPEC/hmtx.htm
- *
- * @author Colton Daily
- * @date 12/1/2021
- */
-internal class HmtxParser(
-    val buffer: ByteBuffer,
-    val start: Int,
-    val numOfHMetrics: Int,
-    val numGlyphs: Int,
-    val glyphs: GlyphSet
-) {
+// horizontal metrics for all glyphs https://www.microsoft.com/typography/OTSPEC/hmtx.htm
+internal class HmtxParser(val buffer: ByteBuffer, val start: Int, val numOfHMetrics: Int, val numGlyphs: Int, val glyphs: GlyphSet) {
     fun parse() {
-        var advanceWidth = 0
-        var leftSideBearing = 0
-        val p = Parser(buffer, start)
-
-        for (i in 0 until numGlyphs) {
-            if (i < numOfHMetrics) {
-                advanceWidth = p.getParseUint16()
-                leftSideBearing = p.getParseInt16().toInt()
+        var advanceWidth: Int = 0
+        var leftSideBearing: Int = 0
+        val parser: Parser = Parser(buffer, start)
+        for (index in 0 until numGlyphs) {
+            if (index < numOfHMetrics) {
+                advanceWidth = parser.getParseUint16()
+                leftSideBearing = parser.getParseInt16().toInt()
             }
-            glyphs[i].apply {
+            glyphs[index].apply {
                 this.advanceWidth = advanceWidth.toFloat()
                 this.leftSideBearing = leftSideBearing
             }
