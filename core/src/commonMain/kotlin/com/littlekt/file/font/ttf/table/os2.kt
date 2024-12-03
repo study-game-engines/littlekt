@@ -3,81 +3,55 @@ package com.littlekt.file.font.ttf.table
 import com.littlekt.file.ByteBuffer
 import com.littlekt.file.font.ttf.Parser
 
-/**
- * The `OS/2` table contains metrics required in OpenType fonts.
- * https://www.microsoft.com/typography/OTSPEC/os2.htm
- *
- * @author Colton Daily
- * @date 11/30/2021
- */
+// The `OS/2` table contains metrics required in OpenType fonts https://www.microsoft.com/typography/OTSPEC/os2.htm
 internal class Os2Parser(val buffer: ByteBuffer, val start: Int) {
 
     fun parse(): Os2 {
-        val p = Parser(buffer, start)
-        val version = p.getParseUint16()
+        val parser: Parser = Parser(buffer, start)
+        val version: Int = parser.getParseUint16()
         return Os2(
             version = version,
-            xAvgCharWidth = p.getParseInt16().toInt(),
-            usWeightClass = p.getParseUint16(),
-            usWidthClass = p.getParseUint16(),
-            fsType = p.getParseUint16(),
-            ySubscriptXSize = p.getParseInt16().toInt(),
-            ySubscriptYSize = p.getParseInt16().toInt(),
-            ySubscriptXOffset = p.getParseInt16().toInt(),
-            ySubscriptYOffset = p.getParseInt16().toInt(),
-            ySuperscriptXSize = p.getParseInt16().toInt(),
-            ySuperscriptYSize = p.getParseInt16().toInt(),
-            ySuperscriptXOffset = p.getParseInt16().toInt(),
-            ySuperscriptYOffset = p.getParseInt16().toInt(),
-            yStrikeoutSize = p.getParseInt16().toInt(),
-            yStrikeoutPosition = p.getParseInt16().toInt(),
-            sFamilyClass = p.getParseInt16().toInt(),
-            panose =
-                byteArrayOf(
-                    p.parseByte(),
-                    p.parseByte(),
-                    p.parseByte(),
-                    p.parseByte(),
-                    p.parseByte(),
-                    p.parseByte(),
-                    p.parseByte(),
-                    p.parseByte(),
-                    p.parseByte(),
-                    p.parseByte()
-                ),
-            ulUnicodeRange1 = p.getParseUint32().toInt(),
-            ulUnicodeRange2 = p.getParseUint32().toInt(),
-            ulUnicodeRange3 = p.getParseUint32().toInt(),
-            ulUnicodeRange4 = p.getParseUint32().toInt(),
-            achVendID =
-                charArrayOf(p.parseChar(), p.parseChar(), p.parseChar(), p.parseChar()).concatToString(),
-            fsSelection = p.getParseUint16(),
-            usFirstCharIndex = p.getParseUint16(),
-            usLastCharIndex = p.getParseUint16(),
-            sTypoAscender = p.getParseInt16().toInt(),
-            sTypoDescender = p.getParseInt16().toInt(),
-            sTypoLineGap = p.getParseInt16().toInt(),
-            usWinAscent = p.getParseUint16(),
-            usWinDescent = p.getParseUint16(),
-            ulCodePageRange1 = if (version >= 1) p.getParseUint32().toInt() else 0,
-            ulCodePageRange2 = if (version >= 1) p.getParseUint32().toInt() else 0,
-            sxHeight = if (version >= 2) p.getParseInt16().toInt() else 0,
-            sCapHeight = if (version >= 2) p.getParseInt16().toInt() else 0,
-            usDefaultChar = if (version >= 2) p.getParseUint16() else 0,
-            usBreakChar = if (version >= 2) p.getParseUint16() else 0,
-            usMaxContent = if (version >= 2) p.getParseUint16() else 0,
+            xAvgCharWidth = parser.getParseInt16().toInt(),
+            usWeightClass = parser.getParseUint16(),
+            usWidthClass = parser.getParseUint16(),
+            fsType = parser.getParseUint16(),
+            ySubscriptXSize = parser.getParseInt16().toInt(),
+            ySubscriptYSize = parser.getParseInt16().toInt(),
+            ySubscriptXOffset = parser.getParseInt16().toInt(),
+            ySubscriptYOffset = parser.getParseInt16().toInt(),
+            ySuperscriptXSize = parser.getParseInt16().toInt(),
+            ySuperscriptYSize = parser.getParseInt16().toInt(),
+            ySuperscriptXOffset = parser.getParseInt16().toInt(),
+            ySuperscriptYOffset = parser.getParseInt16().toInt(),
+            yStrikeoutSize = parser.getParseInt16().toInt(),
+            yStrikeoutPosition = parser.getParseInt16().toInt(),
+            sFamilyClass = parser.getParseInt16().toInt(),
+            panose = byteArrayOf(parser.parseByte(), parser.parseByte(), parser.parseByte(), parser.parseByte(), parser.parseByte(), parser.parseByte(), parser.parseByte(), parser.parseByte(), parser.parseByte(), parser.parseByte()),
+            ulUnicodeRange1 = parser.getParseUint32().toInt(),
+            ulUnicodeRange2 = parser.getParseUint32().toInt(),
+            ulUnicodeRange3 = parser.getParseUint32().toInt(),
+            ulUnicodeRange4 = parser.getParseUint32().toInt(),
+            achVendID = charArrayOf(parser.parseChar(), parser.parseChar(), parser.parseChar(), parser.parseChar()).concatToString(),
+            fsSelection = parser.getParseUint16(),
+            usFirstCharIndex = parser.getParseUint16(),
+            usLastCharIndex = parser.getParseUint16(),
+            sTypoAscender = parser.getParseInt16().toInt(),
+            sTypoDescender = parser.getParseInt16().toInt(),
+            sTypoLineGap = parser.getParseInt16().toInt(),
+            usWinAscent = parser.getParseUint16(),
+            usWinDescent = parser.getParseUint16(),
+            ulCodePageRange1 = if (version >= 1) parser.getParseUint32().toInt() else 0,
+            ulCodePageRange2 = if (version >= 1) parser.getParseUint32().toInt() else 0,
+            sxHeight = if (version >= 2) parser.getParseInt16().toInt() else 0,
+            sCapHeight = if (version >= 2) parser.getParseInt16().toInt() else 0,
+            usDefaultChar = if (version >= 2) parser.getParseUint16() else 0,
+            usBreakChar = if (version >= 2) parser.getParseUint16() else 0,
+            usMaxContent = if (version >= 2) parser.getParseUint16() else 0,
         )
     }
 }
 
-/**
- * The `OS/2` table contains metrics required in OpenType fonts.
- * https://www.microsoft.com/typography/OTSPEC/os2.htm
- *
- * @author Colton Daily
- * @date 11/30/2021
- */
-internal data class Os2(
+data class Os2(
     val version: Int,
     val xAvgCharWidth: Int,
     val usWeightClass: Int,
@@ -119,9 +93,7 @@ internal data class Os2(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
-
         other as Os2
-
         if (version != other.version) return false
         if (xAvgCharWidth != other.xAvgCharWidth) return false
         if (usWeightClass != other.usWeightClass) return false
@@ -159,12 +131,11 @@ internal data class Os2(
         if (usDefaultChar != other.usDefaultChar) return false
         if (usBreakChar != other.usBreakChar) return false
         if (usMaxContent != other.usMaxContent) return false
-
         return true
     }
 
     override fun hashCode(): Int {
-        var result = version
+        var result: Int = version
         result = 31 * result + xAvgCharWidth
         result = 31 * result + usWeightClass
         result = 31 * result + usWidthClass
@@ -203,4 +174,5 @@ internal data class Os2(
         result = 31 * result + usMaxContent
         return result
     }
+
 }

@@ -2,27 +2,15 @@ package com.littlekt.file.font.ttf
 
 import com.littlekt.file.ByteBuffer
 
-/**
- * @author Colton Daily
- * @date 12/1/2021
- */
-internal typealias GlyphLoader = () -> MutableGlyph
+typealias GlyphLoader = () -> MutableGlyph
 
-internal fun SimpleGlyphLoader(index: Int, unitsPerEm: Int): GlyphLoader {
-    return { MutableGlyph(index = index, unitsPerEm) }
+fun SimpleGlyphLoader(index: Int, unitsPerEm: Int): GlyphLoader {
+    return { MutableGlyph(index, unitsPerEm) }
 }
 
-internal fun TTfGlyphLoader(
-    fontReader: TtfFontReader,
-    index: Int,
-    unitsPerEm: Int,
-    parseGlyph: (MutableGlyph, ByteBuffer, Int) -> Unit,
-    buffer: ByteBuffer,
-    position: Int,
-    buildPath: (GlyphSet, MutableGlyph) -> Unit,
-): GlyphLoader {
+fun TTfGlyphLoader(fontReader: TtfFontReader, index: Int, unitsPerEm: Int, parseGlyph: (MutableGlyph, ByteBuffer, Int) -> Unit, buffer: ByteBuffer, position: Int, buildPath: (GlyphSet, MutableGlyph) -> Unit): GlyphLoader {
     return {
-        val glyph = MutableGlyph(index, unitsPerEm)
+        val glyph: MutableGlyph = MutableGlyph(index, unitsPerEm)
         glyph.calcPath = {
             parseGlyph.invoke(glyph, buffer, position)
             buildPath(fontReader.glyphs, glyph)
@@ -31,34 +19,31 @@ internal fun TTfGlyphLoader(
     }
 }
 
-internal class GlyphSet : Iterable<MutableGlyph> {
-    private val glyphLoader = mutableMapOf<Int, GlyphLoader>()
-    private val glyphs = mutableMapOf<Int, MutableGlyph>()
-    private var length = 0
+class GlyphSet : Iterable<MutableGlyph> {
 
-    val size
-        get() = length
+    private val glyphLoader: MutableMap<Int, () -> MutableGlyph> = mutableMapOf()
+    private val glyphs: MutableMap<Int, MutableGlyph> = mutableMapOf()
+    var size: Int = 0
+        private set
 
     override fun iterator(): Iterator<MutableGlyph> {
         return glyphs.values.iterator()
     }
 
     operator fun get(index: Int): MutableGlyph {
-
-        val glyph =
-            glyphs.getOrPut(index) {
-                glyphLoader[index]?.invoke()
-                    ?: error("Unable to retrieve or load glyph of index $index")
-            }
+        val glyph: MutableGlyph = glyphs.getOrPut(index) {
+            glyphLoader[index]?.invoke() ?: error("Unable to retrieve or load glyph of index $index")
+        }
         return glyph
     }
 
     operator fun set(index: Int, loader: GlyphLoader) {
         glyphLoader[index] = loader
-        length++
+        size++
     }
 
     override fun toString(): String {
-        return "GlyphSet(glyphs=$glyphs, length=$length)"
+        return "GlyphSet(glyphs=$glyphs, size=$size)"
     }
+
 }

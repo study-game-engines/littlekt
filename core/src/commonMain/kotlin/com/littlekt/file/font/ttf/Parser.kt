@@ -29,18 +29,18 @@ internal class Parser(private val buffer: ByteBuffer, val offset: Int) {
     fun getParseOffset32() = getParseUint32()
 
     fun getParseFixed(): Float {
-        val decimal = buffer.getShort(offset)
-        val fraction = buffer.getUShort(offset + 2).toShort()
+        val decimal: Short = buffer.getShort(offset)
+        val fraction: Short = buffer.getUShort(offset + 2).toShort()
         relativeOffset += 4
         return (decimal + fraction / 65535).toFloat()
     }
 
     fun parseString(length: Int): String {
-        val offset = offset + relativeOffset
-        var string = ""
+        val offset: Int = offset + relativeOffset
+        var string: String = ""
         relativeOffset += length
-        for (i in 0 until length) {
-            string += buffer.getUByte(offset + i).toInt().toChar()
+        for (index in 0 until length) {
+            string += buffer.getUByte(offset + index).toInt().toChar()
         }
         return string
     }
@@ -48,8 +48,8 @@ internal class Parser(private val buffer: ByteBuffer, val offset: Int) {
     fun getParseLongDateTime() = buffer.getInt(offset + relativeOffset + 4).run { this - 2082844800 }.also { relativeOffset += 8 }
 
     fun parseVersion(minorBase: Int = 0x1000): Float {
-        val major = buffer.getUShort(offset + relativeOffset).toShort()
-        val minor = buffer.getUShort(offset + relativeOffset + 2).also { relativeOffset += 4 }.toShort()
+        val major: Short = buffer.getUShort(offset + relativeOffset).toShort()
+        val minor: Short = buffer.getUShort(offset + relativeOffset + 2).also { relativeOffset += 4 }.toShort()
         return major + minor / minorBase / 10f
     }
 
@@ -58,27 +58,25 @@ internal class Parser(private val buffer: ByteBuffer, val offset: Int) {
     }
 
     fun parseUInt32List(count: Int? = null): IntArray {
-        val total = count ?: getParseUint32().toInt()
-        val offsets = IntArray(total)
-        var offset = offset + relativeOffset
-        for (i in 0 until total) {
-            offsets[i] = buffer.getUInt(offset).toInt()
+        val total: Int = count ?: getParseUint32().toInt()
+        val offsets: IntArray = IntArray(total)
+        var offset: Int = offset + relativeOffset
+        for (index in 0 until total) {
+            offsets[index] = buffer.getUInt(offset).toInt()
             offset += 4
         }
-
         relativeOffset += total * 4
         return offsets
     }
 
     fun parseUint16List(count: Int? = null): ShortArray {
-        val total = count ?: getParseUint32().toInt()
-        val offsets = ShortArray(total)
-        var offset = offset + relativeOffset
+        val total: Int = count ?: getParseUint32().toInt()
+        val offsets: ShortArray = ShortArray(total)
+        var offset: Int = offset + relativeOffset
         for (i in 0 until total) {
             offsets[i] = buffer.getUShort(offset).toShort()
             offset += 2
         }
-
         relativeOffset += total * 2
         return offsets
     }
@@ -86,25 +84,23 @@ internal class Parser(private val buffer: ByteBuffer, val offset: Int) {
     fun parseOffset16List(count: Int? = null) = parseUint16List(count)
 
     fun parseInt16List(count: Int? = null): ShortArray {
-        val total = count ?: getParseUint32().toInt()
-        val offsets = ShortArray(total)
-        var offset = offset + relativeOffset
-        for (i in 0 until total) {
-            offsets[i] = buffer.getShort(offset)
+        val total: Int = count ?: getParseUint32().toInt()
+        val offsets: ShortArray = ShortArray(total)
+        var offset: Int = offset + relativeOffset
+        for (index in 0 until total) {
+            offsets[index] = buffer.getShort(offset)
             offset += 2
         }
-
         relativeOffset += total * 2
         return offsets
     }
 
     fun parseByteList(count: Int): ByteArray {
-        val list = ByteArray(count)
-        var offset = offset + relativeOffset
-        for (i in 0 until count) {
-            list[i] = buffer.getUByte(offset++).toByte()
+        val list: ByteArray = ByteArray(count)
+        var offset: Int = offset + relativeOffset
+        for (index in 0 until count) {
+            list[index] = buffer.getUByte(offset++).toByte()
         }
-
         relativeOffset += count
         return list
     }

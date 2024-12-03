@@ -6,11 +6,8 @@ import com.littlekt.graphics.g2d.font.GlyphReference
 import com.littlekt.graphics.g2d.font.TtfGlyph
 import com.littlekt.math.Rect
 
-/**
- * @author Colton Daily
- * @date 12/1/2021
- */
-internal class MutableGlyph(var index: Int, var unitsPerEm: Int) {
+class MutableGlyph(var index: Int, var unitsPerEm: Int) {
+
     var name: String? = null
     var xMin: Int = 0
     var yMin: Int = 0
@@ -36,63 +33,31 @@ internal class MutableGlyph(var index: Int, var unitsPerEm: Int) {
         if (unicodes.isEmpty()) {
             this.unicode = unicode
         }
-
         unicodes.add(unicode)
     }
 
-    fun toImmutable() =
-        TtfGlyph(
-            name,
-            index,
-            xMin,
-            yMin,
-            xMax,
-            yMax,
-            advanceWidth,
-            leftSideBearing,
-            numberOfContours,
-            unicode,
-            unicodes.toList(),
-            path,
-            endPointIndices.toList(),
-            instructionLength,
-            instructions.toList(),
-            points.map { it.toImmutable() },
-            refs.map { it.toImmutable() },
-            isComposite,
-            unitsPerEm
-        )
+    fun toImmutable(): TtfGlyph {
+        val points: List<ContourPoint> = points.map { it.toImmutable() }
+        val refs: List<GlyphReference> = refs.map { it.toImmutable() }
+        return TtfGlyph(name, index, xMin, yMin, xMax, yMax, advanceWidth, leftSideBearing, numberOfContours, unicode, unicodes.toList(), path, endPointIndices.toList(), instructionLength, instructions.toList(), points, refs, isComposite, unitsPerEm)
+    }
+
 }
 
-internal data class MutablePoint(
-    var x: Int = 0,
-    var y: Int = 0,
-    var onCurve: Boolean = false,
-    var lastPointOfContour: Boolean = false
-) {
-
-    fun toImmutable() = ContourPoint(x, y, onCurve, lastPointOfContour)
+data class MutablePoint(var x: Int = 0, var y: Int = 0, var onCurve: Boolean = false, var lastPointOfContour: Boolean = false) {
+    fun toImmutable(): ContourPoint = ContourPoint(x, y, onCurve, lastPointOfContour)
 }
 
-internal data class MutableGlyphReference(
-    val glyphIndex: Int,
-    var x: Int,
-    var y: Int,
-    var scaleX: Float,
-    var scale01: Float,
-    var scale10: Float,
-    var scaleY: Float,
-    var matchedPoints: IntArray? = null
-) {
-    fun toImmutable() =
-        GlyphReference(glyphIndex, x, y, scaleX, scale01, scale10, scaleY, matchedPoints)
+data class MutableGlyphReference(val glyphIndex: Int, var x: Int, var y: Int, var scaleX: Float, var scale01: Float, var scale10: Float, var scaleY: Float, var matchedPoints: IntArray? = null) {
+
+    fun toImmutable(): GlyphReference {
+        return GlyphReference(glyphIndex, x, y, scaleX, scale01, scale10, scaleY, matchedPoints)
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
-
         other as MutableGlyphReference
-
         if (glyphIndex != other.glyphIndex) return false
         if (x != other.x) return false
         if (y != other.y) return false
@@ -101,12 +66,11 @@ internal data class MutableGlyphReference(
         if (scale10 != other.scale10) return false
         if (scaleY != other.scaleY) return false
         if (!matchedPoints.contentEquals(other.matchedPoints)) return false
-
         return true
     }
 
     override fun hashCode(): Int {
-        var result = glyphIndex
+        var result: Int = glyphIndex
         result = 31 * result + x
         result = 31 * result + y
         result = 31 * result + scaleX.hashCode()
@@ -116,4 +80,5 @@ internal data class MutableGlyphReference(
         result = 31 * result + matchedPoints.contentHashCode()
         return result
     }
+
 }

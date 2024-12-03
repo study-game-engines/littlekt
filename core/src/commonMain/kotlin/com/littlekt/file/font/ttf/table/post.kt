@@ -4,54 +4,50 @@ import com.littlekt.file.ByteBuffer
 import com.littlekt.file.font.ttf.Encoding
 import com.littlekt.file.font.ttf.Parser
 
-/**
- * The `post` table stores additional PostScript information, such as glyph names.
- * https://www.microsoft.com/typography/OTSPEC/post.htm
- *
- * @author Colton Daily
- * @date 11/30/2021
- */
-internal class PostParser(val buffer: ByteBuffer, val start: Int) {
+// additional PostScript information, such as glyph names https://www.microsoft.com/typography/OTSPEC/post.htm
+class PostParser(val buffer: ByteBuffer, val start: Int) {
 
     fun parse(): Post {
-        val p = Parser(buffer, start)
-        val post =
-            MutablePost().apply {
-                version = p.parseVersion()
-                italicAngle = p.getParseFixed()
-                underlinePosition = p.getParseInt16().toInt()
-                underlineThickness = p.getParseInt16().toInt()
-                isFixedPitch = p.getParseUint32().toInt()
-                minMemType42 = p.getParseUint32().toInt()
-                maxMemType42 = p.getParseUint32().toInt()
-                minMemType1 = p.getParseUint32().toInt()
-                maxMemType1 = p.getParseUint32().toInt()
-                when (version) {
-                    1f -> names = Encoding.STANDARD_NAMES.copyOf()
-                    2f -> {
-                        numberOfGlyphs = p.getParseUint16()
-                        glyphNameIndex = IntArray(numberOfGlyphs) { p.getParseUint16() }
+        val parser: Parser = Parser(buffer, start)
+        val post = MutablePost().apply {
+            version = parser.parseVersion()
+            italicAngle = parser.getParseFixed()
+            underlinePosition = parser.getParseInt16().toInt()
+            underlineThickness = parser.getParseInt16().toInt()
+            isFixedPitch = parser.getParseUint32().toInt()
+            minMemType42 = parser.getParseUint32().toInt()
+            maxMemType42 = parser.getParseUint32().toInt()
+            minMemType1 = parser.getParseUint32().toInt()
+            maxMemType1 = parser.getParseUint32().toInt()
+            when (version) {
+                1f -> {
+                    names = Encoding.STANDARD_NAMES.copyOf()
+                }
 
-                        val nameList = mutableListOf<String>()
-                        for (i in 0 until numberOfGlyphs) {
-                            if (glyphNameIndex[i] >= Encoding.STANDARD_NAMES.size) {
-                                val nameLength = p.parseUByte()
-                                nameList += p.parseString(nameLength)
-                            }
+                2f -> {
+                    numberOfGlyphs = parser.getParseUint16()
+                    glyphNameIndex = IntArray(numberOfGlyphs) { parser.getParseUint16() }
+                    val nameList: MutableList<String> = mutableListOf()
+                    for (index in 0 until numberOfGlyphs) {
+                        if (glyphNameIndex[index] >= Encoding.STANDARD_NAMES.size) {
+                            val nameLength = parser.parseUByte()
+                            nameList += parser.parseString(nameLength)
                         }
-                        names = nameList.toTypedArray()
                     }
-                    2.5f -> {
-                        numberOfGlyphs = p.getParseUint16()
-                        offset = CharArray(numberOfGlyphs) { p.parseChar() }
-                    }
+                    names = nameList.toTypedArray()
+                }
+
+                2.5f -> {
+                    numberOfGlyphs = parser.getParseUint16()
+                    offset = CharArray(numberOfGlyphs) { parser.parseChar() }
                 }
             }
+        }
         return post.toPost()
     }
 }
 
-private class MutablePost {
+class MutablePost {
     var version: Float = 0f
     var italicAngle: Float = 0f
     var underlinePosition: Int = 0
@@ -65,33 +61,10 @@ private class MutablePost {
     var numberOfGlyphs: Int = 0
     var glyphNameIndex: IntArray = intArrayOf()
     var offset: CharArray = charArrayOf()
-
-    fun toPost() =
-        Post(
-            version,
-            italicAngle,
-            underlinePosition,
-            underlineThickness,
-            isFixedPitch,
-            minMemType42,
-            maxMemType42,
-            minMemType1,
-            maxMemType1,
-            names,
-            numberOfGlyphs,
-            glyphNameIndex,
-            offset
-        )
+    fun toPost(): Post = Post(version, italicAngle, underlinePosition, underlineThickness, isFixedPitch, minMemType42, maxMemType42, minMemType1, maxMemType1, names, numberOfGlyphs, glyphNameIndex, offset)
 }
 
-/**
- * The `post` table stores additional PostScript information, such as glyph names.
- * https://www.microsoft.com/typography/OTSPEC/post.htm
- *
- * @author Colton Daily
- * @date 11/30/2021
- */
-internal data class Post(
+data class Post(
     val version: Float,
     val italicAngle: Float,
     val underlinePosition: Int,
@@ -104,14 +77,13 @@ internal data class Post(
     val names: Array<String>,
     val numberOfGlyphs: Int,
     val glyphNameIndex: IntArray,
-    val offset: CharArray,
+    val offset: CharArray
 ) {
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
-
         other as Post
-
         if (version != other.version) return false
         if (italicAngle != other.italicAngle) return false
         if (underlinePosition != other.underlinePosition) return false
@@ -125,12 +97,11 @@ internal data class Post(
         if (numberOfGlyphs != other.numberOfGlyphs) return false
         if (!glyphNameIndex.contentEquals(other.glyphNameIndex)) return false
         if (!offset.contentEquals(other.offset)) return false
-
         return true
     }
 
     override fun hashCode(): Int {
-        var result = version.toInt()
+        var result: Int = version.toInt()
         result = 31 * result + italicAngle.hashCode()
         result = 31 * result + underlinePosition
         result = 31 * result + underlineThickness
@@ -149,4 +120,5 @@ internal data class Post(
     override fun toString(): String {
         return "Post(version=$version, italicAngle=$italicAngle, underlinePosition=$underlinePosition, underlineThickness=$underlineThickness, isFixedPitch=$isFixedPitch, minMemType42=$minMemType42, maxMemType42=$maxMemType42, minMemType1=$minMemType1, maxMemType1=$maxMemType1, numberOfGlyphs=$numberOfGlyphs)"
     }
+
 }

@@ -10,58 +10,48 @@ import com.littlekt.graphics.g2d.font.TtfGlyph
  */
 class TtfFontReader {
 
-    private val tables = Tables()
+    private val tables: Tables = Tables()
     private var encoding: Encoding = DefaultEncoding(this)
-    private lateinit var glyphNames: GlyphNames
 
-    internal lateinit var glyphs: GlyphSet
-
+    lateinit var glyphNames: GlyphNames
+        private set
+    lateinit var glyphs: GlyphSet
+        private set
     var isCIDFont: Boolean = false
         private set
-
     var outlinesFormat: String = ""
         private set
-
     var unitsPerEm: Int = 0
         private set
-
     var ascender: Int = 0
         private set
-
     var descender: Int = 0
         private set
-
     var lineGap: Int = 0
         private set
-
     var advanceWidthMax: Int = 0
         private set
-
     var numberOfHMetrics: Int = 0
         private set
-
     var numGlyphs: Int = 0
         private set
-
     var capHeight: Int = 0
         private set
-
     var xMin: Float = 0f
         private set
-
     var yMin: Float = 0f
         private set
-
     var xMax: Float = 0f
         private set
-
     var yMax: Float = 0f
         private set
 
-    operator fun get(codePoint: Int): TtfGlyph = this[codePoint.toChar()]
+    operator fun get(codePoint: Int): TtfGlyph {
+        return this[codePoint.toChar()]
+    }
 
     operator fun get(char: Char): TtfGlyph {
-        val glyphIndex = encoding.charToGlyphIndex(char) ?: 0
+        val glyphIndex: Int = encoding.charToGlyphIndex(char) ?: 0
         return glyphs[glyphIndex].let {
             it.calcPath()
             it.toImmutable()
@@ -81,7 +71,7 @@ class TtfFontReader {
             numTables = buffer.getUShort(4).toInt()
             tableEntries = parseOpenTypeTableEntries(buffer, numTables)
         } else if (signature === "wOFF") {
-            val flavor = buffer.getString(4, 4)
+            val flavor: String = buffer.getString(4, 4)
             outlinesFormat = when {
                 flavor == charArrayOf(0.toChar(), 1.toChar(), 0.toChar(), 0.toChar()).concatToString() -> "truetype"
                 flavor === "OTTO" -> "cff"
@@ -93,9 +83,8 @@ class TtfFontReader {
             throw IllegalStateException("Unsupported OpenType signature: $signature")
         }
 
-        var indexToLocFormat = 0
+        var indexToLocFormat: Int = 0
         var ltagTable: List<String>
-
         var cffTableEntry: TableEntry? = null
         var fvarTableEntry: TableEntry? = null
         var glyfTableEntry: TableEntry? = null
@@ -108,8 +97,7 @@ class TtfFontReader {
         var nameTableEntry: TableEntry? = null
         var metaTableEntry: TableEntry? = null
         var parser: Parser
-
-        tableEntries.forEach { tableEntry ->
+        for (tableEntry in tableEntries) {
             val table: Table
             when (tableEntry.tag) {
                 "cmap" -> {
@@ -198,12 +186,12 @@ class TtfFontReader {
         // TODO Determine if name table is needed
 
         if (glyfTableEntry != null && locaTableEntry != null) {
-            val glyf = glyfTableEntry
-            val loca = locaTableEntry
-            val shortVersion = indexToLocFormat == 0
-            val locaTable = uncompressTable(buffer, loca)
-            val locaOffsets = LocaParser(locaTable.buffer, locaTable.offset, numGlyphs, shortVersion).parse()
-            val glyfTable = uncompressTable(buffer, glyf)
+            val glyf: TableEntry = glyfTableEntry
+            val loca: TableEntry = locaTableEntry
+            val shortVersion: Boolean = indexToLocFormat == 0
+            val locaTable: Table = uncompressTable(buffer, loca)
+            val locaOffsets: IntArray = LocaParser(locaTable.buffer, locaTable.offset, numGlyphs, shortVersion).parse()
+            val glyfTable: Table = uncompressTable(buffer, glyf)
             glyphs = GlyfParser(glyfTable.buffer, glyfTable.offset, locaOffsets, this).parse()
         } else if (cffTableEntry != null) {
             // TODO CFF table entry
@@ -216,13 +204,13 @@ class TtfFontReader {
     }
 
     private fun parseOpenTypeTableEntries(buffer: ByteBuffer, numTables: Int): List<TableEntry> {
-        val tableEntries = mutableListOf<TableEntry>()
-        var p = 12
-        for (i in 0 until numTables) {
-            val tag = buffer.getString(p, 4)
-            val checksum = buffer.getUInt(p + 4).toInt()
-            val offset = buffer.getUInt(p + 8).toInt()
-            val length = buffer.getUInt(p + 12).toInt()
+        val tableEntries: MutableList<TableEntry> = mutableListOf()
+        var p: Int = 12
+        repeat(numTables) {
+            val tag: String = buffer.getString(p, 4)
+            val checksum: Int = buffer.getUInt(p + 4).toInt()
+            val offset: Int = buffer.getUInt(p + 8).toInt()
+            val length: Int = buffer.getUInt(p + 12).toInt()
             tableEntries += TableEntry(tag, checksum, offset, length, Compression.NONE, 0)
             p += 16
         }
@@ -230,8 +218,7 @@ class TtfFontReader {
     }
 
     private fun parseWOFFTableEntries(buffer: ByteBuffer, numTables: Int): List<TableEntry> {
-        // TODO("Not yet implemented")
-        return listOf()
+        return emptyList() // TODO("Not yet implemented")
     }
 
     private fun uncompressTable(buffer: ByteBuffer, tableEntry: TableEntry): Table {
@@ -242,21 +229,20 @@ class TtfFontReader {
     }
 
     private fun addGlyphNames() {
-        val glyphIndexMap = tables.cmap?.glyphIndexMap ?: error("Unable to add glyph name due to cmap table being null")
-        val codes = glyphIndexMap.keys
-        codes.forEach {
-            val glyphIndex: Int = glyphIndexMap[it] ?: 0
-            glyphs[glyphIndex].apply { addUnicode(it) }
+        val glyphIndexMap: Map<Int, Int> = tables.cmap?.glyphIndexMap ?: error("Unable to add glyph name due to cmap table being null")
+        val codes: Set<Int> = glyphIndexMap.keys
+        for (code in codes) {
+            val index: Int = glyphIndexMap[code] ?: 0
+            glyphs[index].apply { addUnicode(code) }
         }
-        glyphs.forEachIndexed { i, glyph ->
+        for ((index, glyph) in glyphs.withIndex()) {
             if (encoding is CffEncoding) {
-                if (isCIDFont) {
-                    glyph.name = "gid$i"
-                } else {
-                    glyph.name = (encoding as CffEncoding).charset[i].toString()
+                glyph.name = when {
+                    isCIDFont -> "gid$index"
+                    else -> (encoding as CffEncoding).charset[index].toString()
                 }
             } else if (glyphNames.names.isNotEmpty()) {
-                glyph.name = glyphNames.names[i]
+                glyph.name = glyphNames.names[index]
             }
         }
     }
@@ -264,25 +250,19 @@ class TtfFontReader {
     override fun toString(): String {
         return "TtfFont(outlinesFormat='$outlinesFormat', tables=$tables, encoding=$encoding, unitsPerEm=$unitsPerEm, ascender=$ascender, descender=$descender, numberOfHMetrics=$numberOfHMetrics, numGlyphs=$numGlyphs, glyphNames=$glyphNames, glyphs=$glyphs)"
     }
+
 }
 
-private enum class Compression {
+enum class Compression {
     WOFF,
     NONE
 }
 
-private data class TableEntry(
-    val tag: String,
-    val checksum: Int,
-    val offset: Int,
-    val length: Int,
-    val compression: Compression,
-    val compressedLength: Int,
-)
+data class TableEntry(val tag: String, val checksum: Int, val offset: Int, val length: Int, val compression: Compression, val compressedLength: Int)
 
-private data class Table(val buffer: ByteBuffer, val offset: Int)
+data class Table(val buffer: ByteBuffer, val offset: Int)
 
-internal class Tables {
+class Tables {
     var head: Head? = null
     var cmap: Cmap? = null
     var cvt: ShortArray? = null
@@ -292,8 +272,5 @@ internal class Tables {
     var os2: Os2? = null
     var post: Post? = null
     var prep: ByteArray? = null
-
-    override fun toString(): String {
-        return "Tables(head=$head, cmap=$cmap, hhea=$hhea, maxp=$maxp, os2=$os2, post=$post"
-    }
+    override fun toString(): String = "Tables(head=$head, cmap=$cmap, hhea=$hhea, maxp=$maxp, os2=$os2, post=$post"
 }
