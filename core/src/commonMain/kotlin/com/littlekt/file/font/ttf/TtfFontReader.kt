@@ -71,13 +71,8 @@ class TtfFontReader {
     fun parse(buffer: ByteBuffer) {
         val numTables: Int
         val tableEntries: List<TableEntry>
-        val signature = buffer.getString(0, 4)
-        if (
-            signature ==
-                charArrayOf(0.toChar(), 1.toChar(), 0.toChar(), 0.toChar()).concatToString() ||
-                signature == "true" ||
-                signature == "typ1"
-        ) {
+        val signature: String = buffer.getString(0, 4)
+        if (signature == charArrayOf(0.toChar(), 1.toChar(), 0.toChar(), 0.toChar()).concatToString() || signature == "true" || signature == "typ1") {
             outlinesFormat = "truetype"
             numTables = buffer.getUShort(4).toInt()
             tableEntries = parseOpenTypeTableEntries(buffer, numTables)
@@ -87,21 +82,11 @@ class TtfFontReader {
             tableEntries = parseOpenTypeTableEntries(buffer, numTables)
         } else if (signature === "wOFF") {
             val flavor = buffer.getString(4, 4)
-            outlinesFormat =
-                when {
-                    flavor ==
-                        charArrayOf(0.toChar(), 1.toChar(), 0.toChar(), 0.toChar())
-                            .concatToString() -> {
-                        "truetype"
-                    }
-                    flavor === "OTTO" -> {
-                        "cff"
-                    }
-                    else -> {
-                        throw IllegalStateException("Unsupported OpenType flavor: $flavor")
-                    }
-                }
-
+            outlinesFormat = when {
+                flavor == charArrayOf(0.toChar(), 1.toChar(), 0.toChar(), 0.toChar()).concatToString() -> "truetype"
+                flavor === "OTTO" -> "cff"
+                else -> throw IllegalStateException("Unsupported OpenType flavor: $flavor")
+            }
             numTables = buffer.getUShort(12).toInt()
             tableEntries = parseWOFFTableEntries(buffer, numTables)
         } else {
@@ -129,8 +114,7 @@ class TtfFontReader {
             when (tableEntry.tag) {
                 "cmap" -> {
                     table = uncompressTable(buffer, tableEntry)
-                    val cmap =
-                        CmapParser(table.buffer, table.offset).parse().also { tables.cmap = it }
+                    val cmap: Cmap = CmapParser(table.buffer, table.offset).parse().also { tables.cmap = it }
                     encoding = CmapEncoding(cmap)
                 }
                 "cvt" -> {
@@ -148,26 +132,24 @@ class TtfFontReader {
                 }
                 "head" -> {
                     table = uncompressTable(buffer, tableEntry)
-                    tables.head =
-                        HeadParser(table.buffer, table.offset).parse().also {
-                            xMin = it.xMin.toFloat()
-                            xMax = it.xMax.toFloat()
-                            yMin = it.yMin.toFloat()
-                            yMax = it.yMax.toFloat()
-                            unitsPerEm = it.unitsPerEm
-                            indexToLocFormat = it.indexToLocFormat
-                        }
+                    tables.head = HeadParser(table.buffer, table.offset).parse().also {
+                        xMin = it.xMin.toFloat()
+                        xMax = it.xMax.toFloat()
+                        yMin = it.yMin.toFloat()
+                        yMax = it.yMax.toFloat()
+                        unitsPerEm = it.unitsPerEm
+                        indexToLocFormat = it.indexToLocFormat
+                    }
                 }
                 "hhea" -> {
                     table = uncompressTable(buffer, tableEntry)
-                    tables.hhea =
-                        HheaParser(table.buffer, table.offset).parse().also {
-                            ascender = it.ascender
-                            descender = it.descender
-                            advanceWidthMax = it.advanceWidthMax
-                            lineGap = it.lineGap
-                            numberOfHMetrics = it.numberOfHMetrics
-                        }
+                    tables.hhea = HheaParser(table.buffer, table.offset).parse().also {
+                        ascender = it.ascender
+                        descender = it.descender
+                        advanceWidthMax = it.advanceWidthMax
+                        lineGap = it.lineGap
+                        numberOfHMetrics = it.numberOfHMetrics
+                    }
                 }
                 "hmtx" -> {
                     hmtxTableEntry = tableEntry
@@ -178,28 +160,25 @@ class TtfFontReader {
                 }
                 "maxp" -> {
                     table = uncompressTable(buffer, tableEntry)
-                    tables.maxp =
-                        MaxpParser(table.buffer, table.offset).parse().also {
-                            numGlyphs = it.numGlyphs
-                        }
+                    tables.maxp = MaxpParser(table.buffer, table.offset).parse().also {
+                        numGlyphs = it.numGlyphs
+                    }
                 }
                 "name" -> {
                     nameTableEntry = tableEntry
                 }
                 "OS/2" -> {
                     table = uncompressTable(buffer, tableEntry)
-                    val os2 =
-                        Os2Parser(table.buffer, table.offset).parse().also {
-                            capHeight = it.sCapHeight
-                        }
+                    val os2 = Os2Parser(table.buffer, table.offset).parse().also {
+                        capHeight = it.sCapHeight
+                    }
                     tables.os2 = os2
                 }
                 "post" -> {
                     table = uncompressTable(buffer, tableEntry)
-                    tables.post =
-                        PostParser(table.buffer, table.offset).parse().also {
-                            glyphNames = GlyphNames(it)
-                        }
+                    tables.post = PostParser(table.buffer, table.offset).parse().also {
+                        glyphNames = GlyphNames(it)
+                    }
                 }
                 "prep" -> {
                     table = uncompressTable(buffer, tableEntry)
@@ -219,12 +198,11 @@ class TtfFontReader {
         // TODO Determine if name table is needed
 
         if (glyfTableEntry != null && locaTableEntry != null) {
-            val glyf = glyfTableEntry!!
-            val loca = locaTableEntry!!
+            val glyf = glyfTableEntry
+            val loca = locaTableEntry
             val shortVersion = indexToLocFormat == 0
             val locaTable = uncompressTable(buffer, loca)
-            val locaOffsets =
-                LocaParser(locaTable.buffer, locaTable.offset, numGlyphs, shortVersion).parse()
+            val locaOffsets = LocaParser(locaTable.buffer, locaTable.offset, numGlyphs, shortVersion).parse()
             val glyfTable = uncompressTable(buffer, glyf)
             glyphs = GlyfParser(glyfTable.buffer, glyfTable.offset, locaOffsets, this).parse()
         } else if (cffTableEntry != null) {
@@ -232,12 +210,7 @@ class TtfFontReader {
         } else {
             throw RuntimeException("Font doesn't contain TrueType or CFF outlines.")
         }
-
-        val hmtxTable =
-            uncompressTable(
-                buffer,
-                hmtxTableEntry ?: throw RuntimeException("hmtx table entry was not found!")
-            )
+        val hmtxTable: Table = uncompressTable(buffer, hmtxTableEntry ?: throw RuntimeException("hmtx table entry was not found!"))
         HmtxParser(hmtxTable.buffer, hmtxTable.offset, numberOfHMetrics, numGlyphs, glyphs).parse()
         addGlyphNames()
     }
@@ -269,12 +242,10 @@ class TtfFontReader {
     }
 
     private fun addGlyphNames() {
-        val glyphIndexMap =
-            tables.cmap?.glyphIndexMap
-                ?: error("Unable to add glyph name due to cmap table being null")
+        val glyphIndexMap = tables.cmap?.glyphIndexMap ?: error("Unable to add glyph name due to cmap table being null")
         val codes = glyphIndexMap.keys
         codes.forEach {
-            val glyphIndex = glyphIndexMap[it] ?: 0
+            val glyphIndex: Int = glyphIndexMap[it] ?: 0
             glyphs[glyphIndex].apply { addUnicode(it) }
         }
         glyphs.forEachIndexed { i, glyph ->
@@ -306,7 +277,7 @@ private data class TableEntry(
     val offset: Int,
     val length: Int,
     val compression: Compression,
-    val compressedLength: Int
+    val compressedLength: Int,
 )
 
 private data class Table(val buffer: ByteBuffer, val offset: Int)

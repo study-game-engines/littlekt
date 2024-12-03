@@ -1,3 +1,5 @@
+_Copyright (c) 2022-2024 Colton Daily_
+
 [![Logo](/art/logo/logo-outline.svg)](https://littlekt.com)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/littlektframework/littlekt/blob/master/LICENSE)
