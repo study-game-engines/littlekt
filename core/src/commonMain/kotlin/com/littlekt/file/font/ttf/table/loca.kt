@@ -19,7 +19,7 @@ internal class LocaParser(
 
     fun parse(): IntArray {
         val p = Parser(byteBuffer, start)
-        val parseFn = if (shortVersion) p::parseUint16 else p::parseInt32
+        val parseFn = if (shortVersion) p::getParseUint16 else p::getParseInt32
 
         val glyphOffsets = IntArray(numGlyphs + 1)
         for (i in 0 until numGlyphs) {

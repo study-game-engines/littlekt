@@ -25,8 +25,8 @@ internal class HmtxParser(
 
         for (i in 0 until numGlyphs) {
             if (i < numOfHMetrics) {
-                advanceWidth = p.parseUint16
-                leftSideBearing = p.parseInt16.toInt()
+                advanceWidth = p.getParseUint16()
+                leftSideBearing = p.getParseInt16().toInt()
             }
             glyphs[i].apply {
                 this.advanceWidth = advanceWidth.toFloat()

@@ -13,18 +13,18 @@ internal class HheaParser(val buffer: ByteBuffer, val start: Int) {
         val p = Parser(buffer, start)
         return Hhea(
             version = p.parseVersion(),
-            ascender = p.parseInt16.toInt(),
-            descender = p.parseInt16.toInt(),
-            lineGap = p.parseInt16.toInt(),
-            advanceWidthMax = p.parseUint16,
-            minLeftSideBearing = p.parseInt16.toInt(),
-            minRightSideBearing = p.parseInt16.toInt(),
-            xMaxExtent = p.parseInt16.toInt(),
-            caretSlopeRise = p.parseInt16.toInt(),
-            caretSlopeRun = p.parseInt16.toInt(),
-            caretOffset = p.parseInt16.toInt().also { p.relativeOffset += 8 },
-            metricDataFormat = p.parseInt16.toInt(),
-            numberOfHMetrics = p.parseUint16,
+            ascender = p.getParseInt16().toInt(),
+            descender = p.getParseInt16().toInt(),
+            lineGap = p.getParseInt16().toInt(),
+            advanceWidthMax = p.getParseUint16(),
+            minLeftSideBearing = p.getParseInt16().toInt(),
+            minRightSideBearing = p.getParseInt16().toInt(),
+            xMaxExtent = p.getParseInt16().toInt(),
+            caretSlopeRise = p.getParseInt16().toInt(),
+            caretSlopeRun = p.getParseInt16().toInt(),
+            caretOffset = p.getParseInt16().toInt().also { p.relativeOffset += 8 },
+            metricDataFormat = p.getParseInt16().toInt(),
+            numberOfHMetrics = p.getParseUint16(),
         )
     }
 }

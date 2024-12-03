@@ -17,25 +17,25 @@ internal class HeadParser(val buffer: ByteBuffer, val start: Int) {
         val p = Parser(buffer, start)
         return Head(
             version = p.parseVersion(),
-            fontRevision = (p.parseFixed * 1000).roundToInt() / 1000,
-            checkSumAdjustment = p.parseUint32.toInt(),
+            fontRevision = (p.getParseFixed() * 1000).roundToInt() / 1000,
+            checkSumAdjustment = p.getParseUint32().toInt(),
             magicNumber =
-                p.parseUint32.toInt().also {
+                p.getParseUint32().toInt().also {
                     check(it == 0x5F0F3CF5) { "Font header has wrong magic number." }
                 },
-            flags = p.parseUint16,
-            unitsPerEm = p.parseUint16,
-            created = p.parseLongDateTime,
-            modified = p.parseLongDateTime,
-            xMin = p.parseInt16.toInt(),
-            yMin = p.parseInt16.toInt(),
-            xMax = p.parseInt16.toInt(),
-            yMax = p.parseInt16.toInt(),
-            macStyle = p.parseUint16,
-            lowestRecPPEM = p.parseUint16,
-            fontDirectionHint = p.parseInt16.toInt(),
-            indexToLocFormat = p.parseInt16.toInt(),
-            glyphDateFormat = p.parseInt16.toInt()
+            flags = p.getParseUint16(),
+            unitsPerEm = p.getParseUint16(),
+            created = p.getParseLongDateTime(),
+            modified = p.getParseLongDateTime(),
+            xMin = p.getParseInt16().toInt(),
+            yMin = p.getParseInt16().toInt(),
+            xMax = p.getParseInt16().toInt(),
+            yMax = p.getParseInt16().toInt(),
+            macStyle = p.getParseUint16(),
+            lowestRecPPEM = p.getParseUint16(),
+            fontDirectionHint = p.getParseInt16().toInt(),
+            indexToLocFormat = p.getParseInt16().toInt(),
+            glyphDateFormat = p.getParseInt16().toInt()
         )
     }
 }

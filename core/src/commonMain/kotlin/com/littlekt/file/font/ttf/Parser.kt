@@ -2,12 +2,6 @@ package com.littlekt.file.font.ttf
 
 import com.littlekt.file.ByteBuffer
 
-/**
- * Parsing Util functions
- *
- * @author Colton Daily
- * @date 11/30/2021
- */
 internal enum class Type(val size: Int) {
     BYTE(1),
     SHORT(2),
@@ -17,60 +11,29 @@ internal enum class Type(val size: Int) {
     TAG(4)
 }
 
-internal class Parser(private val buffer: ByteBuffer, offset: Int) {
-    var offset = offset
-        private set
+internal class Parser(private val buffer: ByteBuffer, val offset: Int) {
 
-    var relativeOffset = 0
+    var relativeOffset: Int = 0
 
-    val parseUByte
-        get() = buffer.getUByte(offset + relativeOffset++).toUByte().toInt()
+    fun parseUByte() = buffer.getUByte(offset + relativeOffset++).toInt()
+    fun parseByte(): Byte = buffer.getByte(offset + relativeOffset++)
+    fun parseChar() = buffer.getByte(offset + relativeOffset++).toInt().toChar()
+    fun getParseCard8() = parseUByte()
+    fun getParseUint16() = buffer.getUShort(offset + relativeOffset).also { relativeOffset += 2 }.toUShort().toInt()
+    fun getParseCard16() = getParseUint16()
+    fun getParseOffset16() = getParseUint16()
+    fun getParseInt16() = buffer.getShort(offset + relativeOffset).also { relativeOffset += 2 }
+    fun getParseF2Dot14() = (buffer.getShort(offset + relativeOffset) / 16384).also { relativeOffset += 2 }
+    fun getParseUint32() = buffer.getUInt(offset + relativeOffset).also { relativeOffset += 4 }
+    fun getParseInt32() = buffer.getUInt(offset + relativeOffset).also { relativeOffset += 4 }.toInt()
+    fun getParseOffset32() = getParseUint32()
 
-    val parseByte: Byte
-        get() = buffer.getByte(offset + relativeOffset++)
-
-    val parseChar
-        get() = buffer.getByte(offset + relativeOffset++).toInt().toChar()
-
-    val parseCard8
-        get() = parseUByte
-
-    val parseUint16
-        get() =
-            buffer
-                .getUShort(offset + relativeOffset)
-                .also { relativeOffset += 2 }
-                .toUShort()
-                .toInt()
-
-    val parseCard16
-        get() = parseUint16
-
-    val parseOffset16
-        get() = parseUint16
-
-    val parseInt16
-        get() = buffer.getShort(offset + relativeOffset).also { relativeOffset += 2 }
-
-    val parseF2Dot14
-        get() = (buffer.getShort(offset + relativeOffset) / 16384).also { relativeOffset += 2 }
-
-    val parseUint32
-        get() = buffer.getUInt(offset + relativeOffset).also { relativeOffset += 4 }
-
-    val parseInt32
-        get() = buffer.getUInt(offset + relativeOffset).also { relativeOffset += 4 }.toInt()
-
-    val parseOffset32
-        get() = parseUint32
-
-    val parseFixed: Float
-        get() {
-            val decimal = buffer.getShort(offset)
-            val fraction = buffer.getUShort(offset + 2).toShort()
-            relativeOffset += 4
-            return (decimal + fraction / 65535).toFloat()
-        }
+    fun getParseFixed(): Float {
+        val decimal = buffer.getShort(offset)
+        val fraction = buffer.getUShort(offset + 2).toShort()
+        relativeOffset += 4
+        return (decimal + fraction / 65535).toFloat()
+    }
 
     fun parseString(length: Int): String {
         val offset = offset + relativeOffset
@@ -82,17 +45,11 @@ internal class Parser(private val buffer: ByteBuffer, offset: Int) {
         return string
     }
 
-    val parseLongDateTime
-        get() =
-            buffer
-                .getInt(offset + relativeOffset + 4)
-                .run { this - 2082844800 }
-                .also { relativeOffset += 8 }
+    fun getParseLongDateTime() = buffer.getInt(offset + relativeOffset + 4).run { this - 2082844800 }.also { relativeOffset += 8 }
 
     fun parseVersion(minorBase: Int = 0x1000): Float {
         val major = buffer.getUShort(offset + relativeOffset).toShort()
-        val minor =
-            buffer.getUShort(offset + relativeOffset + 2).also { relativeOffset += 4 }.toShort()
+        val minor = buffer.getUShort(offset + relativeOffset + 2).also { relativeOffset += 4 }.toShort()
         return major + minor / minorBase / 10f
     }
 
@@ -101,7 +58,7 @@ internal class Parser(private val buffer: ByteBuffer, offset: Int) {
     }
 
     fun parseUInt32List(count: Int? = null): IntArray {
-        val total = count ?: parseUint32.toInt()
+        val total = count ?: getParseUint32().toInt()
         val offsets = IntArray(total)
         var offset = offset + relativeOffset
         for (i in 0 until total) {
@@ -114,7 +71,7 @@ internal class Parser(private val buffer: ByteBuffer, offset: Int) {
     }
 
     fun parseUint16List(count: Int? = null): ShortArray {
-        val total = count ?: parseUint32.toInt()
+        val total = count ?: getParseUint32().toInt()
         val offsets = ShortArray(total)
         var offset = offset + relativeOffset
         for (i in 0 until total) {
@@ -129,7 +86,7 @@ internal class Parser(private val buffer: ByteBuffer, offset: Int) {
     fun parseOffset16List(count: Int? = null) = parseUint16List(count)
 
     fun parseInt16List(count: Int? = null): ShortArray {
-        val total = count ?: parseUint32.toInt()
+        val total = count ?: getParseUint32().toInt()
         val offsets = ShortArray(total)
         var offset = offset + relativeOffset
         for (i in 0 until total) {
@@ -151,4 +108,5 @@ internal class Parser(private val buffer: ByteBuffer, offset: Int) {
         relativeOffset += count
         return list
     }
+
 }

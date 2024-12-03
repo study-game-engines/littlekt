@@ -18,32 +18,32 @@ internal class PostParser(val buffer: ByteBuffer, val start: Int) {
         val post =
             MutablePost().apply {
                 version = p.parseVersion()
-                italicAngle = p.parseFixed
-                underlinePosition = p.parseInt16.toInt()
-                underlineThickness = p.parseInt16.toInt()
-                isFixedPitch = p.parseUint32.toInt()
-                minMemType42 = p.parseUint32.toInt()
-                maxMemType42 = p.parseUint32.toInt()
-                minMemType1 = p.parseUint32.toInt()
-                maxMemType1 = p.parseUint32.toInt()
+                italicAngle = p.getParseFixed()
+                underlinePosition = p.getParseInt16().toInt()
+                underlineThickness = p.getParseInt16().toInt()
+                isFixedPitch = p.getParseUint32().toInt()
+                minMemType42 = p.getParseUint32().toInt()
+                maxMemType42 = p.getParseUint32().toInt()
+                minMemType1 = p.getParseUint32().toInt()
+                maxMemType1 = p.getParseUint32().toInt()
                 when (version) {
                     1f -> names = Encoding.STANDARD_NAMES.copyOf()
                     2f -> {
-                        numberOfGlyphs = p.parseUint16
-                        glyphNameIndex = IntArray(numberOfGlyphs) { p.parseUint16 }
+                        numberOfGlyphs = p.getParseUint16()
+                        glyphNameIndex = IntArray(numberOfGlyphs) { p.getParseUint16() }
 
                         val nameList = mutableListOf<String>()
                         for (i in 0 until numberOfGlyphs) {
                             if (glyphNameIndex[i] >= Encoding.STANDARD_NAMES.size) {
-                                val nameLength = p.parseUByte
+                                val nameLength = p.parseUByte()
                                 nameList += p.parseString(nameLength)
                             }
                         }
                         names = nameList.toTypedArray()
                     }
                     2.5f -> {
-                        numberOfGlyphs = p.parseUint16
-                        offset = CharArray(numberOfGlyphs) { p.parseChar }
+                        numberOfGlyphs = p.getParseUint16()
+                        offset = CharArray(numberOfGlyphs) { p.parseChar() }
                     }
                 }
             }

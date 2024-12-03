@@ -4,7 +4,7 @@ import com.littlekt.file.ByteBuffer
 import com.littlekt.file.font.ttf.Parser
 import com.littlekt.file.font.ttf.Type
 
-// The `cmap` table stores the mappings from characters to glyphs https://www.microsoft.com/typography/OTSPEC/cmap.htm
+// mappings from characters to glyphs https://www.microsoft.com/typography/OTSPEC/cmap.htm
 internal class CmapParser(private val buffer: ByteBuffer, private val start: Int) {
 
     fun parse(): Cmap {
@@ -27,7 +27,7 @@ internal class CmapParser(private val buffer: ByteBuffer, private val start: Int
             throw IllegalStateException("No valid cmap sub-tables found")
         }
         val parser: Parser = Parser(buffer, start + offset)
-        cmap.format = parser.parseUint16
+        cmap.format = parser.getParseUint16()
         when (cmap.format) {
             12 -> parseFormat12(cmap, parser)
             4 -> parseFormat4(cmap, parser, start, offset)
@@ -37,9 +37,9 @@ internal class CmapParser(private val buffer: ByteBuffer, private val start: Int
     }
 
     private fun parseFormat4(cmap: MutableCmap, parser: Parser, start: Int, offset: Int) {
-        cmap.length = parser.parseUint16
-        cmap.language = parser.parseUint16
-        val segCount: Int = parser.parseUint16 shr 1
+        cmap.length = parser.getParseUint16()
+        cmap.language = parser.getParseUint16()
+        val segCount: Int = parser.getParseUint16() shr 1
         cmap.segCount = segCount
         parser.skip(Type.SHORT, 3)
 
@@ -50,10 +50,10 @@ internal class CmapParser(private val buffer: ByteBuffer, private val start: Int
         var glyphIndexOffset: Int
         repeat(segCount - 1) {
             var glyphIndex: Int
-            val endCount: Int = endCountParser.parseUint16
-            val startCount: Int = startCountParser.parseUint16
-            val idDelta: Int = idDeltaParser.parseInt16.toInt()
-            val idRangeOffset = idRangeOffsetParser.parseUint16
+            val endCount: Int = endCountParser.getParseUint16()
+            val startCount: Int = startCountParser.getParseUint16()
+            val idDelta: Int = idDeltaParser.getParseInt16().toInt()
+            val idRangeOffset = idRangeOffsetParser.getParseUint16()
             for (c in startCount..endCount) {
                 if (idRangeOffset != 0) {
                     glyphIndexOffset = (idRangeOffsetParser.offset + idRangeOffsetParser.relativeOffset - 2)
@@ -71,22 +71,18 @@ internal class CmapParser(private val buffer: ByteBuffer, private val start: Int
         }
     }
 
-    private fun parseFormat12(cmap: MutableCmap, p: Parser) {
-        p.parseUint16
-
-        cmap.length = p.parseUint32.toInt()
-        cmap.language = p.parseUint32.toInt()
-
-        val groupCount = p.parseUint32
+    private fun parseFormat12(cmap: MutableCmap, parser: Parser) {
+        parser.getParseUint16()
+        cmap.length = parser.getParseUint32().toInt()
+        cmap.language = parser.getParseUint32().toInt()
+        val groupCount = parser.getParseUint32()
         cmap.groupCount = groupCount.toInt()
-
-        for (i in 0 until groupCount.toInt()) {
-            val startCharCode = p.parseUint32
-            val endCharCode = p.parseUint32
-            var startGlyphId = p.parseUint32
-
-            for (c in startCharCode..endCharCode) {
-                cmap.glyphIndexMap[c.toInt()] = startGlyphId.toInt()
+        repeat(groupCount.toInt()) {
+            val startCharCode: Int = parser.getParseUint32().toInt()
+            val endCharCode: Int = parser.getParseUint32().toInt()
+            var startGlyphId: Int = parser.getParseUint32().toInt()
+            for (index in startCharCode..endCharCode) {
+                cmap.glyphIndexMap[index] = startGlyphId
                 startGlyphId++
             }
         }
@@ -94,7 +90,6 @@ internal class CmapParser(private val buffer: ByteBuffer, private val start: Int
 }
 
 private class MutableCmap {
-
     var version: Int = 0
     var numTables: Int = 0
     var format: Int = 0
@@ -103,29 +98,9 @@ private class MutableCmap {
     var groupCount: Int = 0
     val glyphIndexMap: MutableMap<Int, Int> = mutableMapOf()
     var segCount: Int = 0
-
-    fun toCmap() =
-        Cmap(version, numTables, format, length, language, groupCount, glyphIndexMap, segCount)
+    fun toCmap(): Cmap = Cmap(version, numTables, format, length, language, groupCount, glyphIndexMap, segCount)
 }
 
-/**
- * The `cmap` table stores the mappings from characters to glyphs.
- * https://www.microsoft.com/typography/OTSPEC/cmap.htm
- *
- * @author Colton Daily
- * @date 11/30/2021
- */
-internal data class Cmap(
-    val version: Int,
-    val numTables: Int,
-    val format: Int,
-    val length: Int,
-    val language: Int,
-    val groupCount: Int,
-    val glyphIndexMap: Map<Int, Int>,
-    val segCount: Int,
-) {
-    override fun toString(): String {
-        return "Cmap(version=$version, numTables=$numTables, format=$format, length=$length, language=$language, groupCount=$groupCount, segCount=$segCount)"
-    }
+data class Cmap(val version: Int, val numTables: Int, val format: Int, val length: Int, val language: Int, val groupCount: Int, val glyphIndexMap: Map<Int, Int>, val segCount: Int) {
+    override fun toString(): String = "Cmap(version=$version, numTables=$numTables, format=$format, length=$length, language=$language, groupCount=$groupCount, segCount=$segCount)"
 }

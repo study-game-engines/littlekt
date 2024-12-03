@@ -18,16 +18,16 @@ internal class LtagParser(val buffer: ByteBuffer, val start: Int) {
 
     fun parse(): List<String> {
         val p = Parser(buffer, start)
-        val tableVersion = p.parseUint32.toInt()
+        val tableVersion = p.getParseUint32().toInt()
         check(tableVersion == 1) { "Unsupported table version" }
         p.skip(Type.INT)
-        val numTags = p.parseUint32.toInt()
+        val numTags = p.getParseUint32().toInt()
 
         val tags = mutableListOf<String>()
         for (i in 0 until numTags) {
             var tag = ""
-            val offset = start + p.parseUint16
-            val length = p.parseUint16
+            val offset = start + p.getParseUint16()
+            val length = p.getParseUint16()
             for (j in offset + 1 until offset + length) {
                 tag += buffer.getByte(j).toInt().toChar()
             }
