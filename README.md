@@ -4,14 +4,16 @@ _Copyright (c) 2022-2024 Colton Daily_
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/littlektframework/littlekt/blob/master/LICENSE)
 [![build](https://github.com/littlektframework/littlekt/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/littlektframework/littlekt/actions/workflows/build.yml)
-[![Download](https://img.shields.io/maven-central/v/com.littlekt/core/0.10.1)](https://search.maven.org/artifact/com.littlekt/core/0.10.1/pom)
+[![Download](https://img.shields.io/maven-central/v/com.littlekt/core/0.10.2)](https://search.maven.org/artifact/com.littlekt/core/0.10.2/pom)
 
 Requires JDK 21+ in order to use due to the usage of the new Java FFM API.
 
 **Currently, in development.**
 
+Join the [Discord](https://discord.gg/8VCZEQVBvt) server!
+
 [Features](https://littlekt.com/features/) - [Docs](https://littlekt.com/docs/) - [Dokka / KDocs](https://littlekt.com/dokka/) - [Samples](https://github.com/littlektframework/littlekt-samples) -
-[Showcase](#showcase) - [Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a) - [Changelog](CHANGELOG.md) - [Starter Project](https://github.com/littlektframework/littlekt-game-template)
+[Showcase](#showcase) - [Ask a Question](https://github.com/littlektframework/littlekt/discussions/categories/q-a) - [Changelog](CHANGELOG.md) - [Starter Project](https://github.com/littlektframework/littlekt-game-template) - [Discord](https://discord.gg/8VCZEQVBvt)
 
 ## A 2D game framework written in Kotlin
 
@@ -43,8 +45,8 @@ kotlin {
     }
 }
 
-val littleKtVersion = "0.10.1" // get the latest release at the top
-val kotlinCoroutinesVersion = "1.9.0-RC" // or whatever version you are using
+val littleKtVersion = "0.10.2" // get the latest release at the top
+val kotlinCoroutinesVersion = "1.9.0" // or whatever version you are using
 
 sourceSets {
     val commonMain by getting {
@@ -74,13 +76,13 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "21" // littlekt targets jvm 21 so we must target at least 17
+            kotlinOptions.jvmTarget = "22" // littlekt snapshot targets jvm 22 
         }
     }
 }
 
-val littleKtVersion = "0.10.0.a9529eb-SNAPSHOT" // or whichever hash you are using
-val kotlinCoroutinesVersion = "1.9.0-RC" // or whatever version you are using
+val littleKtVersion = "0.11.0.131d453-SNAPSHOT" // or whichever hash you are using
+val kotlinCoroutinesVersion = "1.9.0" // or whatever version you are using
 
 sourceSets {
     val commonMain by getting {
